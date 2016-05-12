@@ -1,0 +1,21 @@
+{
+    "name": "mimosafa/wp-ui",
+    "description": "WordPress admin UI helper.",
+    "keywords": ["WordPress", "admin"],
+    "type": "library",
+    "licence": "GPLv2+",
+    "require": {
+        "php": ">=5.4"
+    },
+    "authors": [
+        {
+            "name": "Toshimichi Mimoto",
+            "email": "mimosafa@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "mimosafa\\WP\\UI\\": ""
+        }
+    }
+}
