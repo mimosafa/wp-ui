@@ -3,46 +3,38 @@ namespace mimosafa\WP\UI;
 
 class FindUI {
 
-	protected $what;
-	protected $q = [];
+	protected $context;
+	protected static $args = [];
 
-	public function __construct( $what, $q = [] ) {
-		if ( ! in_array( $what, [ 'posts', 'terms' ], true ) ) {
+	public function __construct( $context, $q = [] ) {
+		if ( ! filter_var( $context ) || isset( self::$args[$context] ) ) {
 			throw new \Exception( 'Invalid.' );
 		}
 		Bootstrap::init();
-		$this->what = $what;
-		$this->q = wp_parse_args( $q );
-		add_action( 'admin_init', [ $this, 'init' ] );
+		$this->context = $context;
+		self::$args[$context] = wp_parse_args( $q );
+		static $done = false;
+		if ( ! $done ) {
+			add_action( 'admin_init', [ $this, 'init' ] );
+			$done = true;
+		}
 	}
 
 	public function __set( $name, $value ) {
-		$this->q[$name] = $value;
+		self::$args[$this->context][$name] = $value;
 	}
 
 	public function init() {
 		global $pagenow;
 		if ( $pagenow !== 'upload.php' ) {
-			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-			add_action( 'admin_footer', [ $this, 'find_div' ] );
-			remove_action( 'wp_ajax_find_posts', 'wp_ajax_find_posts', 10 );
+			add_action( 'admin_footer', 'find_posts_div' );
 		}
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	public function enqueue_scripts() {
 		wp_enqueue_script( 'mimosafa-find-ui', MIMOSAFA_UI_JS_URL . 'find-ui.js', [ 'media', 'mimosafa-ui' ], '', true );
-		wp_localize_script( 'mimosafa-find-ui', 'MIMOSAFA_FIND_UI', $this->localized_data() );
-	}
-
-	public function find_div() {
-		//
-	}
-
-	protected function localized_data() {
-		$data = [];
-		$data['action'] = 'find_' . $this->what;
-		//
-		return $data;
+		wp_localize_script( 'mimosafa-find-ui', 'MIMOSAFA_FIND_UI', self::$args );
 	}
 
 }
