@@ -17,6 +17,11 @@ namespace mimosafa\WP\UI;
 class MetaBox {
 
 	/**
+	 * @uses mimosafa\WP\UI\Util
+	 */
+	use Util;
+
+	/**
 	 * @var string
 	 */
 	protected $id;
@@ -65,7 +70,7 @@ class MetaBox {
 		foreach ( compact( 'id', 'title', 'callback', 'screen', 'context', 'priority', 'callback_args', 'show_on' ) as $key => $val ) {
 			! $val ?: $this->$key( $val );
 		}
-		if ( ! $this->id || $this->id !== esc_attr( $this->id ) ) {
+		if ( ! self::validIdString( $this->id ) ) {
 			throw new \Exception( '$id is required and must be valid string.' );
 		}
 		add_action( 'add_meta_boxes', [ $this, 'init' ] );
@@ -123,14 +128,6 @@ class MetaBox {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * @param  string $string
-	 * @return string
-	 */
-	protected static function labelize( $string ) {
-		return trim( ucwords( str_replace( [ '-', '_' ], ' ', $string ) ) );
 	}
 
 }

@@ -17,6 +17,11 @@ namespace mimosafa\WP\UI;
 class FormTable {
 
 	/**
+	 * @uses mimosafa\WP\UI\Util
+	 */
+	use Util;
+
+	/**
 	 * @var string
 	 */
 	private $id = '';
@@ -149,14 +154,6 @@ class FormTable {
 			$html .= "\t\t</tr>\n";
 		}
 		return $html;
-	}
-
-	/**
-	 * @param  mixed
-	 * @return string|boolean
-	 */
-	private static function validIdString( $string ) {
-		return is_string( $string ) && $string === esc_attr( $string ) ? $string : false;
 	}
 
 }
