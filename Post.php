@@ -13,7 +13,7 @@ class Post {
 	protected $after_title       = [];
 	protected $after_editor      = [];
 
-	public function __construct( $post_type = '' ) {
+	public function __construct( $post_type = null ) {
 		if ( $post_type ) {
 			$this->post_type = $post_type;
 		}
@@ -21,6 +21,9 @@ class Post {
 		add_action( 'load-post-new.php', [ $this, 'load_post' ] );
 	}
 
+	/**
+	 * @param mimosafa\WP\UI\MetaBox $meta_box
+	 */
 	public function add_meta_box( MetaBox $meta_box ) {
 		$this->meta_boxes[] = $meta_box;
 	}
@@ -94,7 +97,7 @@ class Post {
 	 */
 	protected function typenow() {
 		global $typenow;
-		return $typenow === $this->post_type;
+		return $this->post_type ? $typenow === $this->post_type : true;
 	}
 
 }

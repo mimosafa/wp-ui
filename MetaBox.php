@@ -1,49 +1,105 @@
 <?php
+
+/*
+ * This file is part of the mimosafa\wp-ui package.
+ *
+ * (c) Toshimichi Mimoto <mimosafa@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace mimosafa\WP\UI;
 
+/**
+ * @author Toshimichi Mimoto <mimosafa@gmail.com>
+ */
 class MetaBox {
 
+	/**
+	 * @var string
+	 */
 	protected $id;
+
+	/**
+	 * @var string
+	 */
 	protected $title;
+
+	/**
+	 * @var callable
+	 */
 	protected $callback;
-	protected $screen = null;
+
+	/**
+	 * @var string|null
+	 */
+	protected $screen;
+
+	/**
+	 * @var string 'normal'|'advanced'|'side'
+	 */
 	protected $context = 'advanced';
+
+	/**
+	 * @var string 'high'|'core'|'default'|'low'
+	 */
 	protected $priority = 'default';
-	protected $callback_args = null;
 
-	protected $show_on_new = null;
+	/**
+	 * @var array|null
+	 */
+	protected $callback_args;
 
-	public function __construct( $id, $title = '', $callback = '', $screen = null, $context = '', $priority = '', $callback_args = null ) {
-		if ( ! $id = filter_var( $id, \FILTER_SANITIZE_STRING ) ) {
-			throw new \Exception( 'Invalid.' );
+	/**
+	 * @var string
+	 */
+	protected $show_on = 'both';
+
+	/**
+	 * Constructor.
+	 *
+	 * @access public
+	 */
+	public function __construct( $id = '', $title = '', $callback = '', $screen = null, $context = '', $priority = '', $callback_args = null, $show_on = '' ) {
+		foreach ( compact( 'id', 'title', 'callback', 'screen', 'context', 'priority', 'callback_args', 'show_on' ) as $key => $val ) {
+			! $val ?: $this->$key( $val );
 		}
-		$this->id = $id;
-
-		! $title    ?: $this->title( $title );
-		! $callback ?: $this->callback( $callback );
-		! $screen   ?: $this->screen( $screen );
-		! $context  ?: $this->context( $context );
-		! $priority ?: $this->priority( $priority );
-		! $callback_args ?: $this->callback_args( $callback_args );
+		if ( ! $this->id || $this->id !== esc_attr( $this->id ) ) {
+			throw new \Exception( '$id is required and must be valid string.' );
+		}
+		add_action( 'add_meta_boxes', [ $this, 'init' ] );
 	}
 
 	public function init() {
-		if ( isset( $this->show_on_new ) ) {
-			if ( $this->show_on_new && ! $this->new_post() OR ! $this->show_on_new && $this->new_post() ) {
+		extract( get_object_vars( $this ) );
+		if ( $show_on !== 'both' ) {
+			if ( $show_on === 'new' && ! $this->new_post() OR $show_on === 'existing' && $this->new_post() ) {
 				return;
 			}
 		}
-		if ( ! $this->title ) {
-			$this->title = self::labelize( $this->id );
+		if ( ! $callback ) {
+			if ( ! method_exists( $this, 'meta_box_callback' ) ) {
+				throw new \Exception( 'Callback is required.' );
+			}
+			$callback = [ $this, 'meta_box_callback' ];
 		}
-		add_meta_box( $this->id, $this->title, $this->callback, $this->screen, $this->context, $this->priority, $this->callback_args );
+		$title = $title ?: self::labelize( $id );
+		add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
 	}
 
 	public function __call( $name, $args ) {
-		if ( property_exists( $this, $name ) && ! in_array( $name, [ 'id', 'show_on_new' ], true ) ) {
+		if ( property_exists( $this, $name ) ) {
 			$this->$name = $args[0];
 			return $this;
 		}
+	}
+
+	public function id( $id ) {
+		if ( $id && is_string( $id ) && $id === esc_attr( $id ) ) {
+			$this->id = $id;
+		}
+		return $this;
 	}
 
 	public function callback( Callable $callback ) {
@@ -52,32 +108,15 @@ class MetaBox {
 	}
 
 	public function show_on( $context ) {
-		switch ( $context ) {
-			case 'new':
-				$this->show_on_new = true;
-				break;
-			case 'existing':
-				$this->show_on_new = false;
-				break;
-			case 'both':
-				$this->show_on_new = null;
-				break;
+		if ( in_array( $context, [ 'new', 'existing', 'both' ], true ) ) {
+			$this->show_on = $context;
 		}
 		return $this;
 	}
 
-	public function show_on_new() {
-		return $this->show_on( 'new' );
-	}
-
-	public function show_on_existing() {
-		return $this->show_on( 'existing' );
-	}
-
-	public function show_on_both() {
-		return $this->show_on( 'both' );
-	}
-
+	/**
+	 * @return boolean
+	 */
 	protected function new_post() {
 		global $pagenow;
 		if ( $pagenow === 'post-new.php' ) {
@@ -86,6 +125,10 @@ class MetaBox {
 		return false;
 	}
 
+	/**
+	 * @param  string $string
+	 * @return string
+	 */
 	protected static function labelize( $string ) {
 		return trim( ucwords( str_replace( [ '-', '_' ], ' ', $string ) ) );
 	}
