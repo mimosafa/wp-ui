@@ -65,17 +65,21 @@ class MetaBox {
 	 * Constructor.
 	 *
 	 * @access public
+	 * @uses   mimosafa\WP\UI\Util::isValidIdString()
 	 */
 	public function __construct( $id = '', $title = '', $callback = '', $screen = null, $context = '', $priority = '', $callback_args = null, $show_on = '' ) {
 		foreach ( compact( 'id', 'title', 'callback', 'screen', 'context', 'priority', 'callback_args', 'show_on' ) as $key => $val ) {
 			! $val ?: $this->$key( $val );
 		}
-		if ( ! self::validIdString( $this->id ) ) {
+		if ( ! self::isValidIdString( $this->id ) ) {
 			throw new \Exception( '$id is required and must be valid string.' );
 		}
 		add_action( 'add_meta_boxes', [ $this, 'init' ] );
 	}
 
+	/**
+	 * @uses mimosafa\WP\UI\Util::labelize()
+	 */
 	public function init() {
 		extract( get_object_vars( $this ) );
 		if ( $show_on !== 'both' ) {
@@ -100,8 +104,11 @@ class MetaBox {
 		}
 	}
 
+	/**
+	 * @uses mimosafa\WP\UI\Util::validIdString()
+	 */
 	public function id( $id ) {
-		if ( $id && is_string( $id ) && $id === esc_attr( $id ) ) {
+		if ( $id = self::validIdString( $id ) ) {
 			$this->id = $id;
 		}
 		return $this;
