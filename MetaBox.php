@@ -14,7 +14,7 @@ namespace mimosafa\WP\UI;
 /**
  * @author Toshimichi Mimoto <mimosafa@gmail.com>
  */
-class MetaBox {
+class MetaBox implements UI {
 
 	/**
 	 * @uses mimosafa\WP\UI\Util
@@ -57,7 +57,7 @@ class MetaBox {
 	protected $callback_args;
 
 	/**
-	 * @var string
+	 * @var string 'new'|'existing'|'both'
 	 */
 	protected $show_on = 'both';
 
@@ -71,10 +71,6 @@ class MetaBox {
 		foreach ( compact( 'id', 'title', 'callback', 'screen', 'context', 'priority', 'callback_args', 'show_on' ) as $key => $val ) {
 			! $val ?: $this->$key( $val );
 		}
-		if ( ! self::isValidIdString( $this->id ) ) {
-			throw new \Exception( '$id is required and must be valid string.' );
-		}
-		add_action( 'add_meta_boxes', [ $this, 'init' ] );
 	}
 
 	/**
@@ -82,6 +78,9 @@ class MetaBox {
 	 */
 	public function init() {
 		extract( get_object_vars( $this ) );
+		if ( ! self::isValidIdString( $id ) ) {
+			return;
+		}
 		if ( $show_on !== 'both' ) {
 			if ( $show_on === 'new' && ! $this->new_post() OR $show_on === 'existing' && $this->new_post() ) {
 				return;
@@ -135,6 +134,18 @@ class MetaBox {
 			return true;
 		}
 		return false;
+	}
+
+	public function get_action_tag() {
+		$tags = [ 'add_meta_boxes' ];
+		if ( $this->screen ) {
+			$tags .= 'add_meta_boxes_' . $this->screen;
+		}
+		foreach ( $tags as $tag ) {
+			if ( ! did_action( $tag ) ) {
+				return $tag;
+			}
+		}
 	}
 
 }
