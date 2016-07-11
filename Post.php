@@ -69,17 +69,24 @@ class Post {
 				}
 			}
 		}
-		$tag = $ui->get_action_tag();
-		add_action( $tag, [ $ui, 'init' ] );
+		if ( $tag = $ui->get_action_tag() ) {
+			add_action( $tag, [ $ui, 'init' ] );
+		}
 	}
 
 	/**
-	 * @param string|mimosafa\WP\UI\UI $ui
-	 * @param array|string             $args
+	 * @access public
+	 * @param  string|mimosafa\WP\UI\UI $ui
+	 * @param  array|string             $args
+	 * @return bool
 	 */
 	public function add( $ui, $args = [] ) {
-		$args = wp_parse_args( $args );
-		$this->uis[] = [ $ui, $args ];
+		if ( $ui AND is_string( $ui ) || is_object( $ui ) ) {
+			$args = wp_parse_args( $args );
+			$this->uis[] = [ $ui, $args ];
+			return true;
+		}
+		return false;
 	}
 
 }

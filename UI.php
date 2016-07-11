@@ -24,7 +24,7 @@ interface UI {
 
 	/**
 	 * @access public
-	 * @return  string
+	 * @return string
 	 */
 	public function get_action_tag();
 

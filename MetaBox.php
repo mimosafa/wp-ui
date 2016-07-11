@@ -82,6 +82,9 @@ class MetaBox implements UI {
 			return;
 		}
 		if ( $show_on !== 'both' ) {
+			if ( ! in_array( $show_on, [ 'new', 'existing' ], true ) ) {
+				return;
+			}
 			if ( $show_on === 'new' && ! $this->new_post() OR $show_on === 'existing' && $this->new_post() ) {
 				return;
 			}
@@ -136,6 +139,9 @@ class MetaBox implements UI {
 		return false;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function get_action_tag() {
 		$tags = [ 'add_meta_boxes' ];
 		if ( $this->screen ) {
@@ -146,6 +152,7 @@ class MetaBox implements UI {
 				return $tag;
 			}
 		}
+		return '';
 	}
 
 }
