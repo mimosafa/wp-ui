@@ -145,7 +145,7 @@ class MetaBox implements UI {
 	public function get_action_tag() {
 		$tags = [ 'add_meta_boxes' ];
 		if ( $this->screen ) {
-			$tags .= 'add_meta_boxes_' . $this->screen;
+			$tags[] = 'add_meta_boxes_' . $this->screen;
 		}
 		foreach ( $tags as $tag ) {
 			if ( ! did_action( $tag ) ) {
